@@ -59,7 +59,12 @@ namespace Boreleans.Services
                 switch (command)
                 {
                     case "run":
-                        await CallRun(cancellation);
+                        Task.Run(() => CallRun(cancellation))
+                            .Ignore();
+                        break;
+                    case "rin":
+                        Task.Run(() => CallRunInterleaved(cancellation))
+                            .Ignore();
                         break;
                     case "exit":
                         Environment.Exit(0);
@@ -81,6 +86,12 @@ namespace Boreleans.Services
         {
             var testGrain = grains.GetGrain<ITestGrain>(0);
             await WhenTaskOrCanceled(testGrain.Run(), cancellation);
+        }
+
+        private async Task CallRunInterleaved(CancellationToken cancellation)
+        {
+            var testGrain = grains.GetGrain<ITestGrain>(0);
+            await WhenTaskOrCanceled(testGrain.RunInterleaved(), cancellation);
         }
 
         private async Task WhenTaskOrCanceled(Task task, CancellationToken cancellation)

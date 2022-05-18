@@ -12,7 +12,8 @@ try
             silos.UseLocalhostClustering()
                  .ConfigureServices((context, services) =>
                  {
-                     services.AddHostedService<ConsoleActivatorService>();
+                     services.AddHostedService<ConsoleActivatorService>()
+                             .AddSingleton<IMessenger, Messenger>();
                  });
         })
         .ConfigureLogging((context, logs) => logs.AddSimpleConsole())

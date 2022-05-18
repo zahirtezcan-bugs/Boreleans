@@ -1,14 +1,17 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Boreleans.Services;
+using Microsoft.Extensions.Logging;
 using Orleans;
 
 namespace Boreleans.Grains
 {
     internal class TestGrain : Grain, ITestGrain
     {
+        private readonly IMessenger messenger;
         private readonly ILogger<TestGrain> logger;
 
-        public TestGrain(ILogger<TestGrain> logger)
+        public TestGrain(IMessenger messenger, ILogger<TestGrain> logger)
         {
+            this.messenger = messenger;
             this.logger = logger;
         }
 
@@ -24,10 +27,36 @@ namespace Boreleans.Grains
             return base.OnDeactivateAsync();
         }
 
-        public Task Run()
+        public async Task Run()
         {
-            logger.LogInformation("FUNCTION: Run {grainReference}", GrainReference);
-            return Task.CompletedTask;
+            try
+            {
+                logger.LogInformation("FUNCTION: Run {grainReference}", GrainReference);
+
+                var result = await messenger.SendMessage(0x0000dead);
+
+                logger.LogInformation("Run returned {result}", result);
+            }
+            catch (Exception exc)
+            {
+                logger.LogError(exc, "Unexpected error while trying to wait for the task in Run");
+            }
+        }
+
+        public async Task RunInterleaved()
+        {
+            try
+            {
+                logger.LogInformation("FUNCTION: RunInterleaved {grainReference}", GrainReference);
+
+                var result = await messenger.SendMessage(0x0000beef);
+
+                logger.LogInformation("RunInterleaved returned {result}", result);
+            }
+            catch (Exception exc)
+            {
+                logger.LogError(exc, "Unexpected error while trying to wait for the task in RunInterleaved");
+            }
         }
     }
 }
